@@ -8,37 +8,40 @@
 
 import SwiftUI
 
-
 @main
 struct muApp: App {
-    @State private var rootDirectory: FileNode? = nil
-
+    @StateObject private var workspaceState = WorkspaceState()
+    
     var body: some Scene {
         WindowGroup {
-            if let directory = rootDirectory {
-                ContentView(rootDirectory: directory)
-            } else {
-                ContentView(rootDirectory: FileNode(url: URL(fileURLWithPath: "/"))) // Provide a default
-            }
+            ContentView()
+                .environmentObject(workspaceState)
         }
         .commands {
             CommandGroup(replacing: .newItem) {
-                Button("Open Folder…") {
-                    openFolder()
+                Button("Open...") {
+                    openItem()
                 }
                 .keyboardShortcut("O", modifiers: [.command])
             }
         }
     }
-
-    func openFolder() {
+    
+    func openItem() {
         let panel = NSOpenPanel()
-        panel.canChooseFiles = false
+        panel.canChooseFiles = true
         panel.canChooseDirectories = true
         panel.allowsMultipleSelection = false
+        panel.allowedFileTypes = ["pdf"]
         
         if panel.runModal() == .OK, let url = panel.url {
-            rootDirectory = FileNode.loadPDFs(from: url)
+            let isDirectory = (try? url.resourceValues(forKeys: [.isDirectoryKey]))?.isDirectory ?? false
+            
+            if isDirectory {
+                workspaceState.openWorkspace(url: url)
+            } else {
+                workspaceState.openIndividualPDF(url: url)
+            }
         }
     }
 }

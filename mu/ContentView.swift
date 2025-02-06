@@ -9,23 +9,18 @@
 import SwiftUI
 
 struct ContentView: View {
-    @State private var selectedPDF: URL? = nil
-    let rootDirectory: FileNode
-
+    @EnvironmentObject var workspaceState: WorkspaceState
+    
     var body: some View {
         NavigationView {
-            SidebarView(selectedPDF: $selectedPDF, root: rootDirectory)
-            if let pdf = selectedPDF {
-                PDFViewer(url: pdf)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            SidebarView()
+            if let selectedPDF = workspaceState.selectedPDF {
+                PDFViewer(url: selectedPDF)
             } else {
-                Text("Select a PDF to view")
+                Text("No PDF Selected")
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .foregroundColor(.gray)
             }
         }
-        .frame(minWidth: 800, minHeight: 600)
+        .environmentObject(workspaceState)
     }
 }
-
-
